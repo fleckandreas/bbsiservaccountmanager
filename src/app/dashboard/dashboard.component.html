@@ -1,0 +1,122 @@
+<div>
+    <mat-tab-group [(selectedIndex)]="tabindex" (selectedIndexChange)="selectedTab($event)">
+
+        <mat-tab label="Schüler">
+            <div>
+                <div style="margin-bottom:25px">
+                    <mat-form-field style="width:200px;display:inline-block;margin-right:25px">
+                        <input matInput (keyup)="applyFilter($event.target.value)" placeholder="Filter">
+                    </mat-form-field>
+                    <div class="menu">
+                        <mat-menu #appMenu2="matMenu">
+                            <button mat-menu-item (click)="allAccounts()">
+                                <mat-icon>build</mat-icon><span>alle Accounts </span>
+                            </button>
+                            <button mat-menu-item (click)="checkAccounts()">
+                                <mat-icon>build</mat-icon><span>Accounts ohne IServ-Sync</span>
+                            </button>
+                        </mat-menu>
+                        <button mat-icon-button [matMenuTriggerFor]="appMenu2">
+                            <mat-icon>filter_list</mat-icon>
+                        </button>
+                    </div>
+                </div>
+                <div>
+                    <div>
+                        <table style="width: 100%" *ngIf="dataSource !=null && tabindex==0" mat-table matSort
+                            multiTemplateDataRows [dataSource]="dataSource" [trackBy]="myTrackById"
+                            class="mat-elevation-z8">
+                            <ng-container matColumnDef="{{column}}" *ngFor="let column of columnsToDisplay">
+                                <th mat-header-cell *matHeaderCellDef mat-sort-header> {{column}} </th>
+                                <td mat-cell *matCellDef="let element"> {{element[column]}} </td>
+                            </ng-container>
+
+                            <!-- Expanded Content Column - The detail row is made up of this one column that spans across all columns -->
+                            <ng-container matColumnDef="expandedDetail">
+                                <td mat-cell *matCellDef="let element" [attr.colspan]="columnsToDisplay.length">
+                                    <div class="example-element-detail"
+                                        [@detailExpand]="element == expandedElement ? 'expanded' : 'collapsed'">
+                                        <div class="" style="width:100%;max-width:480px">
+                                            <mat-form-field class="example">
+                                                <input placeholder="ID" matInput [(ngModel)]="element.id">
+                                            </mat-form-field>
+                                            <mat-form-field class="example">
+                                                    <input placeholder="BBS NNAME" matInput [(ngModel)]="element.NNAME">
+                                                </mat-form-field>
+                                                <mat-form-field class="example">
+                                                    <input placeholder="BBS VNAME" matInput [(ngModel)]="element.VNAME">
+                                                </mat-form-field>
+                                                <mat-form-field class="example">
+                                                        <input placeholder="BBS GEBDAT" matInput [(ngModel)]="element.GEBDAT">
+                                                    </mat-form-field>
+                                            <mat-form-field class="example">
+                                                <input placeholder="Account Nachname" matInput [(ngModel)]="element.AccountNName">
+                                            </mat-form-field>
+                                            <mat-form-field class="example">
+                                                <input placeholder="Account Vorname" matInput [(ngModel)]="element.AccountVName">
+                                            </mat-form-field>
+                                            <mat-form-field class="example">
+                                                <input placeholder="Account" matInput [(ngModel)]="element.Account">
+                                            </mat-form-field>
+                                            <mat-form-field class="example">
+                                                    <input placeholder="Passwort"  matInput [(ngModel)]="element.Passwort">
+                                                </mat-form-field>
+                                            <mat-form-field class="example">
+                                                <input placeholder="Kurse" matInput [(ngModel)]="element.Kurse">
+                                            </mat-form-field>
+                                            <mat-form-field class="example">
+                                                    <input placeholder="KL_NAME" matInput [(ngModel)]="element.KL_NAME">
+                                            </mat-form-field>
+                                            <mat-form-field class="example">
+                                                    <input placeholder="BBSID" matInput [(ngModel)]="element.BBSID">
+                                            </mat-form-field>                                         
+                                        </div>
+                                    </div>
+                                </td>
+                            </ng-container>
+
+                            <tr mat-header-row *matHeaderRowDef="columnsToDisplay"></tr>
+                            <tr mat-row *matRowDef="let element; columns: columnsToDisplay;" class="example-element-row"
+                                [class.example-expanded-row]="expandedElement === element"
+                                (click)="expandedElement = expandedElement === element ? null : element">
+                            </tr>
+                            <tr mat-row *matRowDef="let row; columns: ['expandedDetail']" class="example-detail-row">
+                            </tr>
+                        </table>
+                    </div>
+                    <mat-paginator #paginator [pageSize]="25"></mat-paginator>
+                </div>
+            </div>
+        </mat-tab>
+        <mat-tab label="Lehrer">
+            <mat-list *ngIf="workspace">
+                <mat-list-item *ngFor="let lehrer of workspace.lehrer">
+                    {{lehrer.Kurz}},{{lehrer.NNAME}},{{lehrer.VNAME}},{{lehrer.Klassen}}</mat-list-item>
+            </mat-list>
+        </mat-tab>
+        <mat-tab label="Einstellungen">
+            <div class="example" *ngIf="workspace && workspace.options">
+                <mat-form-field class="example">
+                    <input matInput name="removePattern" placeholder="Löschmuster (RegEx)"
+                        [(ngModel)]="workspace.options.removePattern">
+                </mat-form-field>
+                <mat-form-field class="example">
+                    <input matInput name="replaceUnderscorePattern" placeholder="Mit Unterstrich ersetzen (RegEx)"
+                        [(ngModel)]="workspace.options.replaceUnderscorePattern">
+                </mat-form-field>
+                <mat-form-field class="example">
+                    <input matInput name="BBSImportColumns" placeholder="BBSImport-Spalten (,-getrennt)"
+                        [(ngModel)]="workspace.options.BBSImportColumns">
+                </mat-form-field>
+                <mat-form-field class="example">
+                    <input matInput name="IServColumns" placeholder="IServ-Exportspalten (,-getrennt)"
+                        [(ngModel)]="workspace.options.IServColumns">
+                </mat-form-field>
+                <mat-form-field class="example">
+                    <input matInput name="" placeholder="Nicht Exportieren Muster (Klassen, Kurse) (,-getrennt)"
+                        [(ngModel)]="workspace.options.notExportPatternKK">
+                </mat-form-field>
+            </div>
+        </mat-tab>
+    </mat-tab-group>
+</div>

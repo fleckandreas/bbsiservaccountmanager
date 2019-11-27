@@ -1,0 +1,47 @@
+<!--<div class="appcomponent">
+    <nav mat-tab-nav-bar>
+        <a mat-tab-link
+        [routerLink]="'/'"
+        routerLinkActive #rla="routerLinkActive"
+        [active]="rla.isActive">
+         Accounts
+     </a>
+        <a mat-tab-link
+           [routerLink]="'importcsv'"
+           routerLinkActive #rla="routerLinkActive"
+           [active]="rla.isActive">
+          ImportCsv
+        </a>
+      </nav>
+  <router-outlet></router-outlet>
+</div>-->
+<div class="menu" style="background:lavender">
+  <button mat-button (click)="openWorkspace()"><mat-icon>folder_open</mat-icon></button>
+  <button mat-button (click)="saveWorkspace()"><mat-icon>save</mat-icon></button>
+  <button mat-icon-button [matMenuTriggerFor]="appMenu">
+    <mat-icon>import_export</mat-icon>
+   </button>
+  <mat-menu #appMenu="matMenu">
+    <button mat-menu-item (click)="getIservFile()">Export ISERV-Schüler-Datei</button>
+    <button mat-menu-item (click)="getIservLehrerFile()">Export ISERV-Lehrer-Datei</button>
+    <button mat-menu-item (click)="generateKlassenListen()">Account- und Anwesenheitslisten im Verzeichnis generieren</button>     
+    <a  mat-menu-item [routerLink]="['/import']" routerLinkActive="router-link-active">Import</a> 
+</mat-menu>
+  <div style="display:inline-block;width:200px"></div>
+  
+
+  <a mat-button [routerLink]="['/']"><mat-icon>home</mat-icon></a>
+  <button mat-button (click)="back()"><mat-icon>chevron_left</mat-icon></button>
+  <span *ngIf="!editname">{{workspace.name}}</span>
+  <mat-form-field *ngIf="editname">
+    <input matInput name="IServColumns" placeholder="Name"
+        [(ngModel)]="workspace.name">
+  </mat-form-field> 
+  <button mat-button (click)="editname = !editname"><mat-icon>edit</mat-icon></button>
+</div>
+<div fxLayout="row" fxLayoutAlign="center start">
+  <div fxFlex="95%" style="">
+      <router-outlet></router-outlet>
+  </div>  
+</div>
+

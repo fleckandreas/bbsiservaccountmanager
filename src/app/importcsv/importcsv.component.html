@@ -1,0 +1,170 @@
+<div style="width:100vw;">
+  <div>
+  <h3>Import</h3>
+</div>
+ <mat-tab-group [selectedIndex]="selectedIndex2" >
+  <mat-tab label="BBS-CSV Schüler">
+
+  <div>
+    <div> 
+      <button [disabled]="bbsaccounts==''" mat-raised-button (click)="importBbs()">Vorschau Import BBS-Daten</button>
+      <mat-checkbox class="example-margin" [(ngModel)]="reorg">Daten wurden in BBS-Planung reorganisiert</mat-checkbox>
+
+    </div> 
+    <mat-form-field class="example-full-width">
+      <textarea [(ngModel)]="bbsaccounts" matInput rows="10" placeholder="Copy & Paste von BBS csv-Datei (; = Seperator)!"></textarea>
+    </mat-form-field>
+    
+  </div>
+  </mat-tab>
+  <mat-tab label="IServ-Accounts">
+      
+          <button [disabled]="accounts==''" mat-raised-button (click)="importIServ()">Accounts importieren</button>
+          
+      <mat-form-field class="example-full-width">
+          <textarea [(ngModel)]="accounts" matInput rows="10"
+              placeholder="Copy & Paste von ISERV Logfile!"></textarea>
+      </mat-form-field>
+      <div>
+          <mat-tab-group *ngIf="noIServMatch.length>0">
+              <mat-tab label="Nicht gefunden">
+                  <mat-list>
+                      <mat-list-item *ngFor="let new of noIServMatch"> {{new.Nachname}},{{new.Vorname}}
+                      </mat-list-item>
+                  </mat-list>
+              </mat-tab>
+          </mat-tab-group>
+      </div>
+  </mat-tab>
+  
+<mat-tab label="Vorschau Import Schüler">
+    <div >
+      <button mat-raised-button [disabled]="result ==null" (click)="applyImportBbs()">Änderungen übernehmen</button>
+    <mat-tab-group [(selectedIndex)]="tabindex" (selectedTabChange)="buildDataSource($event)" >
+        <mat-tab label="Neu">
+            <mat-list  *ngIf="result && tabindex==0" >
+              <mat-list-item *ngFor="let new of result.notfound">
+                {{new.NNAME}},{{new.VNAME}},{{new.KL_NAME}}</mat-list-item>
+            </mat-list>
+          </mat-tab>
+      <mat-tab label="Unsicher">
+        <div *ngIf="result && tabindex==1" >        
+          <table style="width:100%" mat-table matSort [dataSource]="dataSource" [trackBy]="myTrackById">
+            <ng-container matColumnDef="changes">
+              <th mat-header-cell *matHeaderCellDef mat-sort-header> Änderung </th>
+              <td mat-cell *matCellDef="let element"> {{element.changes}} </td>
+            </ng-container>
+            <ng-container matColumnDef="userbbs">
+              <th mat-header-cell *matHeaderCellDef> User BBS </th>
+              <td mat-cell *matCellDef="let element">
+                {{element.import.NNAME}},{{element.import.VNAME}},{{element.import.GEBDAT}},{{element.import.KL_NAME}},{{element.import.Kurse}}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="useraccounts">
+              <th mat-header-cell *matHeaderCellDef> User Account </th>
+              <td mat-cell *matCellDef="let element">
+                {{element.existing.NNAME}},{{element.existing.VNAME}},{{element.existing.GEBDAT}},{{element.existing.KL_NAME}},{{element.existing.Kurse}}
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="changeuser">
+              <th mat-header-cell *matHeaderCellDef> Ändern </th>
+              <td mat-cell *matCellDef="let element">
+                 <div>
+                  <mat-form-field>
+                    <mat-select #selectcontrol placeholder="Account wählen">
+                      <mat-option *ngFor="let element of schuelerdb" [value]="element">
+                        {{element.NNAME}},{{element.VNAME}},{{element.KL_NAME}},{{element.GEBDAT}}
+                      </mat-option>
+                    </mat-select>
+                  </mat-form-field>
+                  <button mat-raised-button color="warn" (click)="changeAccount(element,selectcontrol.value)">Ändern</button>
+                </div>
+              </td>
+            </ng-container>
+            <ng-container matColumnDef="isnew">
+              <th mat-header-cell *matHeaderCellDef> ist Neu </th>
+              <td mat-cell *matCellDef="let element">
+                   <button mat-raised-button color="warn" (click)="setAccountToNew(element)">ist Neu</button>                
+              </td>
+            </ng-container>
+            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
+            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
+          </table>
+        </div>
+      </mat-tab>
+     
+      <mat-tab  label="Vorhanden">        
+          <table style="width:100%" mat-table *ngIf="result && tabindex==2" matSort [dataSource]="dataSource" [trackBy]="myTrackById" class="mat-elevation-z8">
+              <ng-container matColumnDef="{{column}}" *ngFor="let column of displayedColumnsFound">
+                  <th mat-header-cell *matHeaderCellDef mat-sort-header> {{column}} </th>
+                  <td mat-cell *matCellDef="let element"> {{element[column]}} </td>
+              </ng-container>
+              <tr mat-header-row *matHeaderRowDef="displayedColumnsFound"></tr>
+              <tr mat-row *matRowDef="let row; columns: displayedColumnsFound;"></tr>
+          </table>
+          
+        </mat-tab>
+    </mat-tab-group>
+    <mat-paginator #paginator [pageSize]="25"></mat-paginator>
+  </div>
+</mat-tab>
+<mat-tab label="CSV (UNTIS GP00*) Lehrer">
+    <div>
+        <button [disabled]="untisLehrer=='' || untisUnterricht==''" mat-raised-button (click)="importUntisLehrer()">Vorschau Import Untis-Daten</button>
+      <mat-form-field class="example-full-width">
+        <textarea [(ngModel)]="untisLehrer" matInput rows="10" placeholder="Copy & Paste von UNTIS GP004 csv-Datei (; = Seperator)!"></textarea>
+      </mat-form-field>
+      <mat-form-field class="example-full-width">
+        <textarea [(ngModel)]="untisUnterricht" matInput rows="10" placeholder="Copy & Paste von UNTIS GP002 csv-Datei (; = Seperator)!"></textarea>
+      </mat-form-field>
+      
+    </div>
+    </mat-tab>
+    <mat-tab label="Vorschau Import Lehrer">
+      <button mat-raised-button [disabled]="lehrer.length==0" (click)="importlehrer()">Import Lehrer</button>
+      <mat-list  >
+        <mat-list-item *ngFor="let new of lehrer">
+          {{new.Kurz}},{{new.NNAME}},{{new.VNAME}},{{new.Klassen}}</mat-list-item>
+      </mat-list>
+    </mat-tab>
+    <mat-tab label="ISERV ID Abgleich(nur nach Absprache)">
+      <div>
+        <mat-form-field class="example-full-width">
+          <textarea [(ngModel)]="iservaccounts" matInput rows="5" placeholder="Copy & Paste von BBS csv-Datei (; = Seperator)!"></textarea>
+        </mat-form-field>
+        <button [disabled]="iservaccounts==''" mat-raised-button (click)="replaceIDs()">Import BBS-Daten</button>
+        <mat-list>
+          <mat-list-item *ngFor="let s of changed">
+            {{s.AccountNName}},{{s.AccountVName}}
+          </mat-list-item>
+        </mat-list>
+        <label>nicht geändert</label>
+        <mat-list>
+            <mat-list-item *ngFor="let s of unchanged">
+                {{s.AccountNName}},{{s.AccountVName}}
+            </mat-list-item>
+          </mat-list>
+          <label>nicht gefunden</label>
+          <mat-list>
+              <mat-list-item *ngFor="let s of nofound">
+                  {{s.AccountNName}},{{s.AccountVName}}
+              </mat-list-item>
+            </mat-list>
+      </div>
+    </mat-tab>
+    <mat-tab label="Check ">
+      <div>
+         <button mat-raised-button (click)="checkAccounts()">Check</button>
+        <mat-list>
+          <mat-list-item *ngFor="let s of failed">
+            {{s.AccountNName}},{{s.AccountVName}}, {{s.Account}}
+            <mat-form-field class="example">
+              <input placeholder="ID" matInput [(ngModel)]="s.id">
+          </mat-form-field>
+          </mat-list-item>
+        </mat-list>
+        
+      </div>
+    </mat-tab>
+</mat-tab-group>
+</div>
